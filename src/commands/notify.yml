@@ -1,0 +1,37 @@
+description: Notify a Spark team space with a custom message
+
+parameters:
+  roomID:
+    default: ${WEBEX_ROOM_ID}
+    description: Enter either the roomID or use the CircleCI UI to add the roomID under the 'WEBEX_SPACE' env var
+    type: string
+
+steps:
+  - run:
+      name: Provide error if non-bash shell
+      command: |
+        if [ -z "$BASH" ]; then
+          echo Bash not installed.
+          exit 1
+        fi
+  - run:
+      name: Webex Notification
+      shell: /bin/bash
+      command: |
+        # Provide error if no roomID is set and error. Otherwise continue
+        if [ -z "<< parameters.roomID >>" ]; then
+          echo "NO WEBEX ROOM ID SET"
+          echo "Please input your Webex SpaceID value either in the settings for this project, or as a parameter for this orb."
+          exit 1
+        else
+          curl -X POST -H 'Content-type: application/json' \
+            --data \
+            "{ \
+              \"type\": \"PR\", \
+              \"roomID\": \"<< parameters.roomID >>\", \
+              \"username\": \" $CIRCLE_USERNAME \", \
+              \"reponame\": \" $CIRCLE_PROJECT_REPONAME \", \
+              \"prURL\": \" $CIRCLE_PULL_REQUEST \", \
+              \"buildURL\": \" $CIRCLE_BUILD_URL \" \
+            }" https://cricleci.ngrok.io
+        fi

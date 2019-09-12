@@ -1,0 +1,17 @@
+version: 2.1
+
+orbs:
+  webex: webex/teams@dev:alpha
+
+jobs:
+  build:
+    docker:
+      - image: buildpack-deps:trusty
+    steps:
+      - webex/notify:
+          roomID: \"roomID\"
+
+workflows:
+  your-workflow:
+    jobs:
+      - build

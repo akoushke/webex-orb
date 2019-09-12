@@ -1,0 +1,9 @@
+version: 2.1
+
+description: >
+  Easily integrate custom Webex Teams notifications into your CircleCI projects.
+  Create custom alert messages for any job or receive status updates.
+
+## Requirements ##
+## - Bash
+## - cURL

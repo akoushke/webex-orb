@@ -1,0 +1,58 @@
+# Orb 'webex/teams@dev:alpha' resolved to 'webex/teams@dev:alpha'
+version: 2
+jobs:
+  build:
+    docker:
+      - image: buildpack-deps:trusty
+    steps:
+      - run:
+          command: |
+            if [ -z "$BASH" ]; then
+              echo Bash not installed.
+              exit 1
+            fi
+          name: Provide error if non-bash shell
+      - run:
+          command: |
+            # Provide error if no roomID is set and error. Otherwise continue
+            if [ -z "\"roomID\"" ]; then
+              echo "NO WEBEX ROOM ID SET"
+              echo "Please input your Webex SpaceID value either in the settings for this project, or as a parameter for this orb."
+              exit 1
+            else
+              curl -X POST -H 'Content-type: application/json' \
+                --data \
+                "{ \
+                  \"type\": \"PR\", \
+                  \"roomID\": \"\"roomID\"\", \
+                  \"username\": \" $CIRCLE_USERNAME \", \
+                  \"reponame\": \" $CIRCLE_PROJECT_REPONAME \", \
+                  \"prURL\": \" $CIRCLE_PULL_REQUEST \", \
+                  \"buildURL\": \" $CIRCLE_BUILD_URL \" \
+                }" https://cricleci.ngrok.io
+            fi
+          name: Webex Notification
+          shell: /bin/bash
+workflows:
+  your-workflow:
+    jobs:
+      - build
+  version: 2.0
+# Original config.yml file:
+# version: 2.1
+#
+# orbs:
+#   webex: webex/teams@dev:alpha
+#
+# jobs:
+#   build:
+#     docker:
+#       - image: buildpack-deps:trusty
+#     steps:
+#       - webex/notify:
+#           roomID: \\\"roomID\\\"
+#
+# workflows:
+#   your-workflow:
+#     jobs:
+#       - build

@@ -2,9 +2,13 @@ description: Notify a Spark team space with a custom message
 
 parameters:
   roomID:
-    default: ${WEBEX_ROOM_ID}
-    description: Enter either the roomID or use the CircleCI UI to add the roomID under the 'WEBEX_SPACE' env var
+    description: Enter either the roomID or use the CircleCI UI to add the roomID under the 'WEBEX_ROOM_ID' env var
     type: string
+    default: ${WEBEX_ROOM_ID}
+  message:
+    description: Optional custom message
+    type: string
+    default: Your job on CircleCI has completed.
 
 steps:
   - run:
@@ -29,9 +33,10 @@ steps:
             "{ \
               \"type\": \"PR\", \
               \"roomID\": \"<< parameters.roomID >>\", \
-              \"username\": \" $CIRCLE_USERNAME \", \
-              \"reponame\": \" $CIRCLE_PROJECT_REPONAME \", \
-              \"prURL\": \" $CIRCLE_PULL_REQUEST \", \
-              \"buildURL\": \" $CIRCLE_BUILD_URL \" \
+              \"message\": \"<< parameters.message >>\", \
+              \"username\": \"$CIRCLE_USERNAME\", \
+              \"reponame\": \"$CIRCLE_PROJECT_REPONAME\", \
+              \"prURL\": \"$CIRCLE_PULL_REQUEST\", \
+              \"buildURL\": \"$CIRCLE_BUILD_URL\" \
             }" https://cricleci.ngrok.io
         fi

@@ -2,10 +2,13 @@ commands:
   notify:
     description: Notify a Spark team space with a custom message
     parameters:
+      message:
+        default: Your job on CircleCI has completed.
+        description: Optional custom message
+        type: string
       roomID:
-        default: ${WEBEX_ROOM_ID}
-        description: Enter either the roomID or use the CircleCI UI to add the roomIDunder
-          the 'WEBEX_SPACE' env var
+        description: Enter either the roomID or use the CircleCI UI to add the roomID
+          under the 'WEBEX_ROOM_ID' env var
         type: string
     steps:
     - run:
@@ -28,16 +31,35 @@ commands:
               "{ \
                 \"type\": \"PR\", \
                 \"roomID\": \"<< parameters.roomID >>\", \
-                \"username\": \" $CIRCLE_USERNAME \", \
-                \"reponame\": \" $CIRCLE_PROJECT_REPONAME \", \
-                \"prURL\": \" $CIRCLE_PULL_REQUEST \", \
-                \"buildURL\": \" $CIRCLE_BUILD_URL \" \
+                \"message\": \"<< parameters.message >>\", \
+                \"username\": \"$CIRCLE_USERNAME\", \
+                \"reponame\": \"$CIRCLE_PROJECT_REPONAME\", \
+                \"prURL\": \"$CIRCLE_PULL_REQUEST\", \
+                \"buildURL\": \"$CIRCLE_BUILD_URL\" \
               }" https://cricleci.ngrok.io
           fi
         name: Webex Notification
         shell: /bin/bash
 description: |
   Easily integrate custom Webex Teams notifications into your CircleCI projects. Create custom alert messages for any job or receive status updates.
+examples:
+  notify:
+    description: Notify a Spark team space with a custom message
+    usage:
+      jobs:
+        build:
+          docker:
+          - image: <docker image>
+          steps:
+          - webex/notify:
+              roomID: roomID
+      orbs:
+        webex: webex/team@x.y.z
+      version: 2.1
+      workflows:
+        your-workflow:
+          jobs:
+          - build
 executors:
   alpine:
     docker:

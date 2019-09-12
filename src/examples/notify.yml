@@ -1,0 +1,20 @@
+description: Notify a Spark team space with a custom message
+
+usage:
+  version: 2.1
+
+  orbs:
+    webex: webex/team@x.y.z
+
+  jobs:
+    build:
+      docker:
+        - image: <docker image>
+      steps:
+        - webex/notify:
+            roomID: "roomID" # $WEBEX_SPACE_ID or roomID parameter
+
+  workflows:
+    your-workflow:
+      jobs:
+        - build

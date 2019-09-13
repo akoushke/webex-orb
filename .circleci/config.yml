@@ -10,6 +10,8 @@ jobs:
     steps:
       - webex/notify:
           roomID: Y2lzY29zcGFyazovL3VzL1JPT00vYTI2ZWVlMDAtZDVkNS0xMWU5LTkwZDYtN2ZkYjAyZGE4NzI2
+      # - webex/status:
+      #     roomID: Y2lzY29zcGFyazovL3VzL1JPT00vYTI2ZWVlMDAtZDVkNS0xMWU5LTkwZDYtN2ZkYjAyZGE4NzI2
 
 workflows:
   your-workflow:

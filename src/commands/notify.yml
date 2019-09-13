@@ -1,4 +1,4 @@
-description: Notify a Spark team space with a custom message
+description: Notify a Webex teams space with a custom message
 
 parameters:
   roomID:
@@ -30,13 +30,13 @@ steps:
         else
           curl -X POST -H 'Content-type: application/json' \
             --data \
-            "{ \
-              \"type\": \"PR\", \
-              \"roomID\": \"<< parameters.roomID >>\", \
-              \"message\": \"<< parameters.message >>\", \
-              \"username\": \"$CIRCLE_USERNAME\", \
-              \"reponame\": \"$CIRCLE_PROJECT_REPONAME\", \
-              \"prURL\": \"$CIRCLE_PULL_REQUEST\", \
-              \"buildURL\": \"$CIRCLE_BUILD_URL\" \
-            }" https://cricleci.ngrok.io
+              "{ \
+                \"type\": \"PR\", \
+                \"roomID\": \"<< parameters.roomID >>\", \
+                \"message\": \"<< parameters.message >>\", \
+                \"username\": \"$CIRCLE_USERNAME\", \
+                \"reponame\": \"$CIRCLE_PROJECT_REPONAME\", \
+                \"prURL\": \"$CIRCLE_PULL_REQUEST\", \
+                \"buildURL\": \"$CIRCLE_BUILD_URL\" \
+              }" https://cricleci.ngrok.io
         fi

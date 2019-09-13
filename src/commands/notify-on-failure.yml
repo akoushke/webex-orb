@@ -1,0 +1,13 @@
+description: >
+  A handy command to notify a webex teams space  on failure in the default
+  master branch
+parameters:
+  roomID:
+    type: string
+    default: ""
+    description: Enter either the roomID or use the CircleCI UI to add the roomID under the 'WEBEX_ROOM_ID' env var
+
+steps:
+  - status:
+      fail_only: true
+      roomID: <<parameters.roomID>>

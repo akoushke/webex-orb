@@ -1,0 +1,85 @@
+description: >
+  Send a status alert at the end of a job based on success or failure.
+  Must be the last step in a job.
+
+parameters:
+  roomID:
+    type: string
+    default: ${WEBEX_ROOM_ID}
+    description: Enter either the roomID or use the CircleCI UI to add the roomID under the 'WEBEX_ROOM_ID' env var
+
+  success_message:
+    type: string
+    default: "🎉 A $CIRCLE_JOB job $CIRCLE_BUILD_NUM has succeeded!"
+    description: Enter custom message.
+
+  failure_message:
+    type: string
+    default: "❌ A $CIRCLE_JOB job $CIRCLE_BUILD_NUM has failed!"
+    description: Enter custom message.
+
+  fail_only:
+    type: boolean
+    default: false
+    description: >
+      If `true`, notifications successful jobs will not be sent
+
+steps:
+  - run:
+      name: Webex - Setting Failure Condition
+      command: |
+        echo 'export WEBEX_BUILD_STATUS="fail"' >> $BASH_ENV
+      when: on_fail
+
+  - run:
+      name: Slack - Setting Success Condition
+      command: |
+        echo 'export WEBEX_BUILD_STATUS="success"' >> $BASH_ENV
+      when: on_success
+
+  - run:
+      name: Provide error if non-bash shell
+      command: |
+        if [ -z "$BASH" ]; then
+          echo Bash not installed.
+          exit 1
+        fi
+
+  - run:
+      name: Webex - Sending Status Alert
+      shell: /bin/bash
+      when: always
+      command: |
+        #If successful
+        if [ "$WEBEX_BUILD_STATUS" = "success" ]; then
+          #Skip if fail_only
+          if [ << parameters.fail_only >> = true ]; then
+            echo "The job completed successfully"
+            echo '"fail_only" is set to "true". No Webex notification sent.'
+          else
+            curl -X POST -H 'Content-type: application/json' \
+              --data \
+                "{ \
+                  \"type\": \"STATUS\", \
+                  \"roomID\": \"<< parameters.roomID >>\", \
+                  \"message\": \"<< parameters.success_message >>\", \
+                  \"reponame\": \"$CIRCLE_PROJECT_REPONAME\", \
+                  \"buildURL\": \"$CIRCLE_BUILD_URL\", \
+                  \"style\": \"Good\" \
+                }" https://cricleci.ngrok.io
+            echo "Job completed successfully. Alert sent."
+          fi
+        else
+          #If Failed
+          curl -X POST -H 'Content-type: application/json' \
+             --data \
+                "{ \
+                  \"type\": \"STATUS\", \
+                  \"roomID\": \"<< parameters.roomID >>\", \
+                  \"message\": \"<< parameters.failure_message >>\", \
+                  \"reponame\": \"$CIRCLE_PROJECT_REPONAME\", \
+                  \"buildURL\": \"$CIRCLE_BUILD_URL\", \
+                  \"style\": \"Attention\" \
+                }" https://cricleci.ngrok.io
+          echo "Job failed. Alert sent."
+        fi

@@ -1,12 +1,13 @@
 commands:
   notify:
-    description: Notify a Spark team space with a custom message
+    description: Notify a Webex teams space with a custom message
     parameters:
       message:
         default: Your job on CircleCI has completed.
         description: Optional custom message
         type: string
       roomID:
+        default: ${WEBEX_ROOM_ID}
         description: Enter either the roomID or use the CircleCI UI to add the roomID
           under the 'WEBEX_ROOM_ID' env var
         type: string
@@ -28,18 +29,109 @@ commands:
           else
             curl -X POST -H 'Content-type: application/json' \
               --data \
-              "{ \
-                \"type\": \"PR\", \
-                \"roomID\": \"<< parameters.roomID >>\", \
-                \"message\": \"<< parameters.message >>\", \
-                \"username\": \"$CIRCLE_USERNAME\", \
-                \"reponame\": \"$CIRCLE_PROJECT_REPONAME\", \
-                \"prURL\": \"$CIRCLE_PULL_REQUEST\", \
-                \"buildURL\": \"$CIRCLE_BUILD_URL\" \
-              }" https://cricleci.ngrok.io
+                "{ \
+                  \"type\": \"PR\", \
+                  \"roomID\": \"<< parameters.roomID >>\", \
+                  \"message\": \"<< parameters.message >>\", \
+                  \"username\": \"$CIRCLE_USERNAME\", \
+                  \"reponame\": \"$CIRCLE_PROJECT_REPONAME\", \
+                  \"prURL\": \"$CIRCLE_PULL_REQUEST\", \
+                  \"buildURL\": \"$CIRCLE_BUILD_URL\" \
+                }" https://cricleci.ngrok.io
           fi
         name: Webex Notification
         shell: /bin/bash
+  notify-on-failure:
+    description: |
+      A handy command to notify a webex teams space  on failure in the default master branch
+    parameters:
+      roomID:
+        default: ""
+        description: Enter either the roomID or use the CircleCI UI to add the roomID
+          under the 'WEBEX_ROOM_ID' env var
+        type: string
+    steps:
+    - status:
+        fail_only: true
+        roomID: <<parameters.roomID>>
+  status:
+    description: |
+      Send a status alert at the end of a job based on success or failure. Must be the last step in a job.
+    parameters:
+      fail_only:
+        default: false
+        description: |
+          If `true`, notifications successful jobs will not be sent
+        type: boolean
+      failure_message:
+        default: ❌ A $CIRCLE_JOB job $CIRCLE_BUILD_NUM has failed!
+        description: Enter custom message.
+        type: string
+      roomID:
+        default: ${WEBEX_ROOM_ID}
+        description: Enter either the roomID or use the CircleCI UI to add the roomID
+          under the 'WEBEX_ROOM_ID' env var
+        type: string
+      success_message:
+        default: "\U0001F389 A $CIRCLE_JOB job $CIRCLE_BUILD_NUM has succeeded!"
+        description: Enter custom message.
+        type: string
+    steps:
+    - run:
+        command: |
+          echo 'export WEBEX_BUILD_STATUS="fail"' >> $BASH_ENV
+        name: Webex - Setting Failure Condition
+        when: on_fail
+    - run:
+        command: |
+          echo 'export WEBEX_BUILD_STATUS="success"' >> $BASH_ENV
+        name: Slack - Setting Success Condition
+        when: on_success
+    - run:
+        command: |
+          if [ -z "$BASH" ]; then
+            echo Bash not installed.
+            exit 1
+          fi
+        name: Provide error if non-bash shell
+    - run:
+        command: |
+          #If successful
+          if [ "$WEBEX_BUILD_STATUS" = "success" ]; then
+            #Skip if fail_only
+            if [ << parameters.fail_only >> = true ]; then
+              echo "The job completed successfully"
+              echo '"fail_only" is set to "true". No Webex notification sent.'
+            else
+              curl -X POST -H 'Content-type: application/json' \
+                --data \
+                  "{ \
+                    \"type\": \"STATUS\", \
+                    \"roomID\": \"<< parameters.roomID >>\", \
+                    \"message\": \"<< parameters.success_message >>\", \
+                    \"reponame\": \"$CIRCLE_PROJECT_REPONAME\", \
+                    \"buildURL\": \"$CIRCLE_BUILD_URL\", \
+                    \"style\": \"Good\" \
+                  }" https://cricleci.ngrok.io
+              echo "Job completed successfully. Alert sent."
+            fi
+          else
+            #If Failed
+            curl -X POST -H 'Content-type: application/json' \
+               --data \
+                  "{ \
+                    \"type\": \"STATUS\", \
+                    \"roomID\": \"<< parameters.roomID >>\", \
+                    \"message\": \"<< parameters.failure_message >>\", \
+                    \"reponame\": \"$CIRCLE_PROJECT_REPONAME\", \
+                    \"buildURL\": \"$CIRCLE_BUILD_URL\", \
+                    \"style\": \"Attention\" \
+                  }" https://cricleci.ngrok.io
+            echo "Job failed. Alert sent."
+          fi
+        name: Webex - Sending Status Alert
+        shell: /bin/bash
+        when: always
 description: |
   Easily integrate custom Webex Teams notifications into your CircleCI projects. Create custom alert messages for any job or receive status updates.
 examples:
